@@ -69,12 +69,13 @@ def encrypt_files
 	fmaster.close
 end	
 
-def decrypt_files
+
+def decrypt_files_with_master
 	fmaster = File.open("/home/rick/rbf/master_01.txt", "r")
 	num_files = 155
 	num_files.times do |file_number|
 		
-		#Read clear cypher_text to decrypt
+		#Read cypher_text to decrypt
 		file_name = "secrets/f#{file_number+1}.txt"
 		f = File.open(file_name,"r")
 		cypher_text = ""
@@ -96,6 +97,84 @@ def decrypt_files
 	fmaster.close
 end	
 
-#-----
-decrypt_files
+def decrypt_files(word_list, pcent = 50)
+	num_files = 155
+	num_files.times do |file_number|
+		
+		#Read cypher_text to decrypt
+		file_name = "secrets/f#{file_number+1}.txt"
+		text = decrypt_file(file_name, word_list, pcent)
+		puts text
+	end	
+end	
 
+
+
+def g_english_word_list(file_name)
+	word_list = {}
+	
+	f = File.open(file_name,"r")
+	while word = f.gets
+		word = word.gsub("\n", "")
+		word_list[word.chomp] = 1;
+	end	
+	f.close
+	return word_list
+end
+
+def is_intelligible?(word_list, text, pcent)
+	text = text.gsub(/[,;.!?"'&%$;:-]/, " ")
+	words = text.split(" ").collect{|x| x.strip}
+	
+	num_words = words.size
+	good_words = 0
+	words.each do |word| 
+		good_words += 1 if word_list.has_key?(word.downcase)
+	end	
+	score = good_words.to_f/num_words.to_f*100.0
+	rv =  score >= pcent.to_f
+	#~ puts "#{good_words} #{num_words} #{score} #{rv}"
+	return rv
+end
+
+def decrypt_file(file_name, word_list, pcent = 50)
+	#Read encrypted file
+	f = File.open(file_name,"r")
+	cypher_text = ""
+	while line = f.gets
+		cypher_text << line
+	end
+	f.close
+		
+	#Try to decrypt cypher_text with encryption key
+	encryption_key = 0
+	done = false
+	pcent = 20
+	while !done do
+		text = decrypt_caesar(cypher_text, encryption_key)
+		
+		if is_intelligible?(word_list, text, pcent)
+			done = true
+		else
+			encryption_key += 1	
+			done = true if encryption_key == 1000
+			text = "Cannot decrypt!"
+		end	
+	end
+	
+	return text
+end	
+
+#-----
+english_word_list = g_english_word_list('dict/ukenglish.txt')
+
+#~ decrypt_file('secrets/f1.txt')
+#~ file_name = "secrets/f102.txt"
+#~ f = File.open(file_name,"r")
+#~ cypher_text = ""
+#~ while line = f.gets
+	#~ cypher_text << line
+#~ end
+#~ f.close
+
+decrypt_files(english_word_list, 50)
