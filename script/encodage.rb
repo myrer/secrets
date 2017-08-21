@@ -81,46 +81,6 @@ def decoder_texte(texte_encode, decodeur)
 end
 
 
-def decrypt_files_with_master
-	fmaster = File.open("/home/rick/rbf/master_01.txt", "r")
-	num_files = 155
-	num_files.times do |file_number|
-		
-		#Read cypher_text to decrypt
-		file_name = "secrets/f#{file_number+1}.txt"
-		f = File.open(file_name,"r")
-		cypher_text = ""
-		while line = f.gets
-			cypher_text << line
-		end
-		f.close
-		
-		#Decrypt cypher_text with encryption key
-		line = fmaster.gets
-		time, name, encryption_key = line.split("\t")
-		text = decrypt_caesar(cypher_text, encryption_key.to_i)
-		
-		#Write decrypted text
-		fout = File.open("decrypt/f#{file_number+1}.txt","w")
-		fout.write(text)
-		fout.close
-	end	
-	fmaster.close
-end	
-
-def decrypt_files(word_list, pcent = 50)
-	num_files = 155
-	num_files.times do |file_number|
-		
-		#Read cypher_text to decrypt
-		file_name = "secrets/f#{file_number+1}.txt"
-		text = decrypt_file(file_name, word_list, pcent)
-		puts text
-	end	
-end	
-
-
-
 def generer_dictionnaire_anglais(nom_fichier)
 	dictionnaire = {}
 	
